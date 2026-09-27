@@ -25,12 +25,12 @@ constexpr const char DESCRIPTION[] = R"json({
         {
           "id": "complete",
           "name": "Complete prop",
-          "testable": true
+          "testable": false
         },
         {
           "id": "reset",
           "name": "Reset",
-          "testable": true
+          "testable": false
         },
         {
           "id": "pulse",
@@ -68,12 +68,12 @@ constexpr const char DESCRIPTION[] = R"json({
         {
           "id": "complete",
           "name": "Complete prop",
-          "testable": true
+          "testable": false
         },
         {
           "id": "reset",
           "name": "Reset",
-          "testable": true
+          "testable": false
         },
         {
           "id": "pulse",
@@ -99,4 +99,5 @@ constexpr const char DESCRIPTION[] = R"json({
       }
     }
   ]
-})json";
+}
+)json";

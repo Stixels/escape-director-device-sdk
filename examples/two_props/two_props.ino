@@ -20,6 +20,7 @@ constexpr bool OUTPUT_ACTIVE_LOW = false;
 
 example::TwoProps props;
 volatile uint32_t testDeadline = 0;
+bool timerRunning = false;
 struct Edge {
   uint32_t game = 0, at = 0;
 };
@@ -66,6 +67,10 @@ class Driver : public ed::CustomDriver {
     if (!prop || (strcmp(capability, "reset") && strcmp(capability, "pulse") &&
                   strcmp(capability, "complete")))
       return false;
+    // Only the temporary pulse is testable. Complete/Reset change persistent
+    // puzzle state and remain ordinary commands, not Test effects.
+    if (testing && strcmp(capability, "pulse"))
+      return false;
     noInterrupts();
     if (!strcmp(capability, "reset"))
       prop->reset();
@@ -73,7 +78,7 @@ class Driver : public ed::CustomDriver {
       prop->testPulse(millis());
     else if (prop->complete() && !testing) {
       // Use the same one-shot signal path as a physical solve. Test mode
-      // changes local state but cannot start Room Automations.
+      // cannot start Room Automations.
       Edge &edge = prop == &props.taps ? tapsEdge : holdEdge;
       edge = {ed::captureGame(), millis()};
     }
@@ -104,9 +109,17 @@ void setup() {
   setOutput(TAPS_OUTPUT, false);
   setOutput(HOLD_OUTPUT, false);
   ed::begin(DESCRIPTION, driver);
-  ed::startTimer(sample, 5);
+  timerRunning = ed::startTimer(sample, 5);
+  if (!timerRunning)
+    Serial.println("SDK timer unavailable; running local puzzle only");
 }
 void loop() {
+  if (!timerRunning) {
+    // Keep local inputs/outputs working, but do not enter network/Game/Test
+    // operation without the independent timer that bounds temporary outputs.
+    sample();
+    return;
+  }
   ed::poll();
   noInterrupts();
   Edge taps = tapsEdge, hold = holdEdge;

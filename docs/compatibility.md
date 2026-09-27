@@ -42,3 +42,13 @@ Custom wiring, loads and third-party puzzle libraries remain the integrator's
 responsibility. Arbitrary Arduino code may need nonblocking timing changes.
 Non-Arduino platforms may implement the wire protocol, but do not gain a guided
 setup flow or a supported adapter merely by speaking MQTT.
+
+## Agent-consumer software exercise
+
+A fresh agent adapted a synthetic three-button sequence using only the source
+bundle and its guides. Description/header/state checks, the host suites and UNO
+compilation passed; a separate host harness compared 1,118,480 sampled
+input/reset transitions with the original local logic. This qualifies the
+software-guidance path for that example only. No firmware was uploaded and no
+physical or network behavior was observed. The exercise identified and prompted
+corrections to the bundled example's Test-command flags and timer-start handling.

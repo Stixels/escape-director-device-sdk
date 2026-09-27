@@ -50,3 +50,12 @@ a compiling adaptation while preserving pins, polarity and local reset/solve
 behavior without needing private source or undocumented information. Record
 where guidance was insufficient and fix the repository. Human bench verification
 is a separate check, after software validation.
+
+## Example command choices
+
+The bundled example marks only Pulse LED as testable. Complete/Reset change its
+ordinary puzzle state and are deliberately unavailable in Test mode. If your
+sketch exposes those commands for testing, implement a temporary overlay and
+restore the ordinary state when the Test lease ends; the consumer exercise used
+that pattern. Always check `startTimer` before enabling networking. The example
+falls back to local-only input/output handling when the timer cannot start.

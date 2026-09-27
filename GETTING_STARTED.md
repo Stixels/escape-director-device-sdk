@@ -101,13 +101,19 @@ In **Test mode**:
 1. Run **Pulse LED** for each prop and watch its LED. Each pulse stops on its own.
 2. If you wired buttons, press and release D2 three times: Three taps' LED stays
    on until **Reset**. Hold D3: Hold button's LED is on only while pressed.
-3. Try **Complete prop**, then **Reset**. Complete prop keeps the output on
-   until Reset.
-4. Release both inputs, reset both props and turn off Test mode.
+3. Release both inputs and turn off Test mode. Physical solves remain normal
+   puzzle state; leaving Test mode only removes temporary pulse effects.
+
+**Complete prop** and **Reset** change ordinary puzzle state, so this example
+does not expose them as Test commands. Exercise them in the practice game or
+normal idle control flow where available. Complete prop keeps the output on
+until Reset; Reset Room resets both props.
 
 Then link each prop to a Puzzle and run a practice game. Complete the Puzzle in
 the Dashboard and check that the prop completes; reset, then solve the prop and
-check that the Puzzle completes once.
+check that the Puzzle completes once. If the timer cannot start, the example
+prints a diagnostic and runs local input/output logic only; it does not enter
+network or Test operation without independent timing.
 
 ## Make it your own
 
