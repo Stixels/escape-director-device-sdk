@@ -68,6 +68,23 @@ a board can echo the provisioned fingerprint after its description is accepted.
    the Connector closes peers without valid state for eight seconds. MQTT keepalive
    is five seconds. A description alone does not make a controller operational.
 
+## Stored pairing data
+
+After pairing, the bundled adapters save the Wi-Fi SSID and password, the
+station CA certificate and the controller UUID/password in the board's
+persistent storage (UNO R4 data flash; GIGA key-value store). This data is not
+encrypted: anyone with physical or USB access to the board can read it. Keep
+controllers in locked or staff-only areas. Before reusing, selling or
+discarding a board, erase its storage with a sketch that clears it; pairing
+again is not enough, because the adapters keep the previous record in a second
+slot as a fallback. If a paired board
+leaves your control, pair a replacement controller for that Device, which
+revokes the old controller credential, and treat the saved Wi-Fi password as
+exposed. A custom `BoardAdapter` decides its own storage; apply the same
+precautions.
+
+## Message rules
+
 Credentials, certificates and network passwords never belong in descriptions or
 state. Messages are bounded to 32 KiB. Operational messages use QoS 0, retain false,
 clean sessions and no offline publish queue. Reconnection repeats negotiation and

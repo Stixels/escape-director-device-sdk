@@ -1,5 +1,5 @@
 // Copyright 2026 Stixels
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 
 #if defined(ARDUINO_UNOR4_WIFI)
 #include "../BoardAdapter.h"

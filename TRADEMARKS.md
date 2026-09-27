@@ -1,7 +1,7 @@
 # Trademark policy
 
 Escape Director, its name, logos and related brand features belong to Stixels.
-The Apache-2.0 source license does not grant permission to brand a third-party
+The MIT source license does not grant permission to brand a third-party
 product as an official Escape Director product or imply endorsement.
 
 You may truthfully describe an integration as compatible with Escape Director

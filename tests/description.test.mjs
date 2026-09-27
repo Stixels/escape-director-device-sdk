@@ -1,5 +1,5 @@
 // Copyright 2026 Stixels
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';

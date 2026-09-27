@@ -15,7 +15,7 @@ and compilation are not promises of qualified operation on every board/network.
 | ArduinoMqttClient | 0.1.8 |
 | Host tooling | Node.js 24.18+, C++17; `zip` for local packaging |
 
-Current SDK code and packaged examples compile for both listed targets. The
+CI compiles the packaged example for both listed targets on every push. The
 portable tests cover command expiry/deduplication, authority, clock wrap, memory
 helpers and pairing-slot fallback. These checks do not establish Wi-Fi/TLS
 reliability, USB recovery or physical output behavior.

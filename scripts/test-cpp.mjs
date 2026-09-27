@@ -1,5 +1,5 @@
 // Copyright 2026 Stixels
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';

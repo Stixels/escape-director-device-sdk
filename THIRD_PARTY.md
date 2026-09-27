@@ -2,7 +2,7 @@
 
 The source download does not vendor the dependencies below. Install them from
 their upstream distributions and retain their license notices. The SDK's
-Apache-2.0 license does not change those dependencies' terms.
+MIT License does not change those dependencies' terms.
 
 | Dependency | Baseline | License information |
 | --- | --- | --- |

@@ -6,7 +6,11 @@ questions, use Escape Director support rather than an issue containing private d
 
 Read AGENTS.md and docs/compatibility.md before changing the API. Keep one outcome
 per change, preserve stable IDs in examples, and document compatibility changes.
-Source contributions are under Apache-2.0; retain applicable copyright notices.
+Contributions are accepted under the same MIT License as the rest of the
+repository (inbound = outbound). By opening a pull request you confirm that you
+wrote the change or otherwise have the right to submit it under that license.
+Keep the existing copyright and SPDX headers; new source files use
+`// SPDX-License-Identifier: MIT`.
 
 ## Validate
 
@@ -18,8 +22,9 @@ npm run check
 The tests require a C++17 compiler (`c++` by default; set `CXX` to a compatible
 compiler executable). On Windows use a suitable Clang/MinGW environment; MSVC's
 command-line flags are not supported by this runner. Firmware compilation uses
-Arduino CLI and the pinned dependencies in GETTING_STARTED.md. Validate both
-bundled board targets when shared code changes. Hardware findings must identify
+Arduino CLI and the pinned dependencies in GETTING_STARTED.md. CI compiles the example
+for both bundled board targets; run the same commands locally when shared code
+changes. Hardware findings must identify
 the board, SDK/core versions, conditions and directly observed behavior.
 
 ## Prepare a download

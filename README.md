@@ -4,7 +4,7 @@ Bring your own Arduino prop code into Escape Director. Keep your puzzle logic;
 the SDK connects its state, commands and completion signals to the Room.
 
 **Private preparation candidate, version 0.3.0.** This repository is being
-prepared for an open-source release under Apache-2.0. No public release is
+prepared for an open-source release under the MIT License. No public release is
 available yet. Board adapters compile for UNO R4 WiFi and GIGA R1 WiFi; current
 end-to-end hardware qualification remains incomplete. See
 [compatibility and qualification](docs/compatibility.md).
@@ -68,7 +68,9 @@ board with prop loads disconnected before adapting an installed controller.
 
 ## License
 
-SDK code, examples, documentation and local tooling are licensed under
-[Apache-2.0](LICENSE). [Escape Director trademarks](TRADEMARKS.md) remain reserved.
+SDK code, examples, documentation and local tooling are licensed under the
+[MIT License](LICENSE): use, modify and redistribute them however you like,
+including in commercial props, as long as the license notice stays with the
+source. [Escape Director trademarks](TRADEMARKS.md) remain reserved.
 Separately installed libraries and board cores retain their own licenses; see
 [third-party dependencies](THIRD_PARTY.md).
