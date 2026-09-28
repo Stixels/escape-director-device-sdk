@@ -6,8 +6,10 @@ excluded from the package allowlist. Do not publish this branch as a release.
 
 ## Integrator shape
 
-`background_two_props` preserves the existing D2/D3 button logic and board LED
-outputs. Its normal Arduino loop is simply:
+`background_two_props` uses D2 as the held button and D3 as the three-tap button.
+On UNO, the built-in matrix shows D2 on the left and latched D3 completion on
+the right; no external LEDs are needed. On GIGA, D2 uses blue and D3 uses red.
+Press the board Reset button to clear the latch for another physical trial. Its normal Arduino loop is simply:
 
 ```cpp
 void loop() {

@@ -8,20 +8,32 @@
 #include "Description.h"
 
 // Wiring. Buttons connect each input to GND; the sketch enables pull-ups.
-constexpr uint8_t TAPS_INPUT = 2, HOLD_INPUT = 3;
-#if defined(ARDUINO_GIGA)
-// Built-in blue and red LEDs, lit by a LOW output.
-constexpr uint8_t TAPS_OUTPUT = LEDB, HOLD_OUTPUT = LEDR;
-constexpr bool OUTPUT_ACTIVE_LOW = true;
+constexpr uint8_t TAPS_INPUT = 3, HOLD_INPUT = 2;
+#if defined(ARDUINO_UNOR4_WIFI)
+#include <Arduino_LED_Matrix.h>
+ArduinoLEDMatrix matrix;
 #else
-// Built-in LED (D13). Wire an LED and resistor from D12 to GND to see Hold button.
-constexpr uint8_t TAPS_OUTPUT = LED_BUILTIN, HOLD_OUTPUT = 12;
-constexpr bool OUTPUT_ACTIVE_LOW = false;
+// GIGA uses the built-in RGB LED: held input blue, three taps red.
 #endif
 
 example::TwoProps props;
-void setOutput(uint8_t pin, bool active) {
-  digitalWrite(pin, active != OUTPUT_ACTIVE_LOW ? HIGH : LOW);
+void showOutputs() {
+  const bool held = props.hold.output(), tapped = props.taps.output();
+  static int previous = -1;
+  const int current = (held ? 1 : 0) | (tapped ? 2 : 0);
+  if (current == previous) return;
+  previous = current;
+#if defined(ARDUINO_UNOR4_WIFI)
+  // Two blocks with a dark gutter: left = D2 held, right = D3 three taps.
+  uint8_t frame[8][12] = {};
+  for (uint8_t row = 1; row < 7; ++row)
+    for (uint8_t column = 0; column < 12; ++column)
+      frame[row][column] = column < 5 ? held : column > 6 ? tapped : false;
+  matrix.renderBitmap(frame, 8, 12);
+#else
+  digitalWrite(LEDB, held ? LOW : HIGH);
+  digitalWrite(LEDR, tapped ? LOW : HIGH);
+#endif
 }
 
 void completed(const char *id);
@@ -33,8 +45,7 @@ void sample() {
     completed(example::TAPS_ID);
   if (props.hold.sample(digitalRead(HOLD_INPUT) == LOW, now))
     completed(example::HOLD_ID);
-  setOutput(TAPS_OUTPUT, props.taps.output());
-  setOutput(HOLD_OUTPUT, props.hold.output());
+  showOutputs();
 }
 class Driver : public ed::experimental::Driver {
   void state(JsonObject report) override {
@@ -84,10 +95,15 @@ void completed(const char *id) { connection.signal(id, "completed"); }
 void setup() {
   pinMode(TAPS_INPUT, INPUT_PULLUP);
   pinMode(HOLD_INPUT, INPUT_PULLUP);
-  pinMode(TAPS_OUTPUT, OUTPUT);
-  pinMode(HOLD_OUTPUT, OUTPUT);
-  setOutput(TAPS_OUTPUT, false);
-  setOutput(HOLD_OUTPUT, false);
+#if defined(ARDUINO_UNOR4_WIFI)
+  if (!matrix.begin()) Serial.println("LED matrix initialization failed");
+#else
+  pinMode(LEDB, OUTPUT);
+  pinMode(LEDR, OUTPUT);
+  pinMode(LEDG, OUTPUT);
+  digitalWrite(LEDG, HIGH);
+#endif
+  showOutputs();
   if (!connection.begin(DESCRIPTION))
     Serial.println(
         "SDK worker unavailable: local puzzle only; offline in Escape Director");

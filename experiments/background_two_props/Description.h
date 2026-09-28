@@ -5,7 +5,7 @@
 // Keep this embedded manifest identical to description.json.
 constexpr const char DESCRIPTION[] = R"json({
   "contractVersion": 1,
-  "firmwareVersion": "0.3.0-background.1",
+  "firmwareVersion": "0.3.0-background.2",
   "name": "Two custom props",
   "configuration": "firmware-owned",
   "diagnostics": {
