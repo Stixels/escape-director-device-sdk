@@ -29,6 +29,13 @@ Work on a copy of a deployed sketch. Do not rewrite it into the example's puzzle
 5. Validate the description, compile for the exact board and report the result.
    Keep software checks separate from upload, pairing and physical observations.
 
+## Private background-network experiment
+
+When explicitly working on the background-network prototype, use
+`experiments/README.md` and its dated results. `ExperimentalBackground.h` is an
+opt-in experiment, excluded from release packages; do not present it as the
+supported default API. Preserve the existing SDK and physical qualification gates.
+
 ## Public API map
 
 Use the bundled header as the authority for signatures; do not invent SDK calls

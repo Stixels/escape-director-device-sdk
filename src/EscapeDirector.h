@@ -18,6 +18,8 @@ public:
   virtual void endTest() = 0;
   // A board timer must enforce this monotonic deadline even while Wi-Fi blocks.
   virtual void testLease(uint32_t deadlineMs) = 0;
+  // Internal dispatch deadline for asynchronous adapters; legacy drivers need no change.
+  virtual void commandDeadline(uint32_t deadlineMs) { (void)deadlineMs; }
   virtual ~CustomDriver() = default;
 };
 

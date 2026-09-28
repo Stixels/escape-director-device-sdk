@@ -7,6 +7,7 @@
 #include <ArduinoMqttClient.h>
 #include <EscapeDirectorDevice.h>
 #include <memory>
+#include <atomic>
 #include <utility>
 
 namespace {
@@ -33,7 +34,7 @@ JsonDocument manifest(&compactAllocator), saved(&compactAllocator),
 ed::NetworkRetry retry;
 ed::CommandWindow<> commands;
 String session, game, test, discoveredHost, discoveryNonce;
-volatile uint32_t leaseUntil = 0, activeGame = 0;
+std::atomic<uint32_t> leaseUntil{0}, activeGame{0};
 uint32_t generation = 0, reportAt = 0, discoveryAt = 0;
 size_t stationAddressAttempt = 0;
 ed::StationClock stationClock;
@@ -193,6 +194,7 @@ const char *execute(JsonDocument &message) {
                                                                    : "command_limit";
   }
   uint32_t remaining = uint32_t(expires - time);
+  driver->commandDeadline(millis() + remaining);
   if (type == "lease") {
     if ((game.isEmpty() && test.isEmpty()) || (op["gameId"] | String("")) != game ||
         (op["testId"] | String("")) != test)
@@ -595,7 +597,9 @@ bool startTimer(void (*tick)(), uint32_t periodMs) {
 }
 
 uint32_t captureGame() {
-  return activeGame && int32_t(millis() - leaseUntil) < 0 ? activeGame : 0;
+  const uint32_t captured = activeGame.load();
+  return captured && int32_t(millis() - leaseUntil.load()) < 0 &&
+                 captured == activeGame.load() ? captured : 0;
 }
 
 bool signal(const char *propId, const char *capability, uint32_t capturedGame,

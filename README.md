@@ -74,3 +74,10 @@ including in commercial props, as long as the license notice stays with the
 source. [Escape Director trademarks](TRADEMARKS.md) remain reserved.
 Separately installed libraries and board cores retain their own licenses; see
 [third-party dependencies](THIRD_PARTY.md).
+
+## Private integration experiment
+
+The [background-network prototype](experiments/README.md) tests keeping puzzle
+logic in the normal Arduino loop without user timer or interrupt bookkeeping.
+It is not the released API. See the [measured results](experiments/2026-09-28-results.md)
+for the UNO trial and remaining memory/network qualification.

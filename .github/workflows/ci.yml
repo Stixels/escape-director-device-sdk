@@ -13,6 +13,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: npm run test:background
 
   # Compiles the example for each bundled adapter with the baseline versions in
   # docs/compatibility.md. Compilation is not hardware qualification.
@@ -37,3 +38,4 @@ jobs:
       - run: arduino-cli core install ${{ matrix.core }}
       - run: arduino-cli lib install ArduinoJson@7.4.3 ArduinoMqttClient@0.1.8
       - run: arduino-cli compile --warnings default --fqbn ${{ matrix.fqbn }} --library . examples/two_props
+      - run: arduino-cli compile --warnings default --fqbn ${{ matrix.fqbn }} --library . experiments/background_two_props
