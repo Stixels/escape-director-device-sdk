@@ -12,9 +12,12 @@ jobs:
           node-version: 24.18.0
           cache: npm
       - run: npm ci
+      # The ed::Room host test compiles against the real ArduinoJson headers.
+      - uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
+      - run: arduino-cli lib install ArduinoJson@7.4.3
       - run: npm run check
 
-  # Compiles the example for each bundled adapter with the baseline versions in
+  # Compiles the sketches for each bundled adapter with the baseline versions in
   # docs/compatibility.md. Compilation is not hardware qualification.
   firmware:
     runs-on: ubuntu-latest
@@ -36,4 +39,5 @@ jobs:
       - run: arduino-cli core update-index
       - run: arduino-cli core install ${{ matrix.core }}
       - run: arduino-cli lib install ArduinoJson@7.4.3 ArduinoMqttClient@0.1.8
-      - run: arduino-cli compile --warnings default --fqbn ${{ matrix.fqbn }} --library . examples/two_props
+      - run: arduino-cli compile --warnings default --fqbn ${{ matrix.fqbn }} --library . examples/room_basic
+      - run: arduino-cli compile --warnings default --fqbn ${{ matrix.fqbn }} --library . examples/button_code

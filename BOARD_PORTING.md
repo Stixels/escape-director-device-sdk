@@ -1,13 +1,11 @@
 # Add an Arduino board adapter
 
-The public sketch interface is `EscapeDirector.h`: `ed::begin`, `ed::poll`,
-`ed::startTimer`, `ed::captureGame` and `ed::signal`. Bundled adapters support
+Sketches use `ed::Room` (`EscapeDirectorRoom.h`). Bundled adapters support
 the Arduino UNO R4 WiFi and GIGA R1 WiFi. Other boards require an adapter;
 choosing `architectures=*` in the library metadata does not mean every board is
 supported or tested.
 
-The library's portable helpers (`EscapeDirectorDevice.h` and the headers it
-includes) have no Arduino dependencies. The shared Arduino client adds the USB
+The shared Arduino client handles the USB
 setup protocol, MQTT messages, discovery and Game/Test rules. `boards/UnoR4Board.cpp`
 and `boards/GigaBoard.cpp` are complete reference adapters; the UNO's is the
 better model for a board with little RAM. The managed firmware's configurable
@@ -23,7 +21,7 @@ Confirm these facts in the board and core documentation:
 | TLS         | How do you install a private CA and verify the station identity? Does the client correctly verify IP addresses, or need the station's certificate name?                                                                                                                           |
 | Storage     | What survives reset and power loss? What is the capacity, erase/page size and write endurance? Can a failed write preserve the last usable pairing?                                                                                                                               |
 | USB         | Which serial object supports bidirectional setup, and what happens when USB opens or the board resets?                                                                                                                                                                            |
-| Memory      | Does the board have RAM for the client on top of its network stack and your sketch? On the UNO R4 the whole example uses about 13 KB of static RAM and, once paired, 7 KB of heap; the heap high-water mark reaches about 15 KB while re-pairing. The description stays in flash. |
+| Memory      | Does the board have RAM for the client on top of its network stack and your sketch? On the UNO R4 a seven-prop sketch uses about 16 KB of static RAM, and the heap high-water mark reaches about 14 KB while re-pairing. The description is generated as it is sent, so it needs no RAM copy. |
 | Timing      | Can inputs and Test-output deadlines be serviced while network calls block? Which timer/task is suitable, and how is shared state protected?                                                                                                                                      |
 | Electrical  | What are the GPIO voltage limits, usable pins and output polarity? Power outputs through appropriate drivers.                                                                                                                                                                     |
 
@@ -69,56 +67,31 @@ Game/Test permissions. Those stay in the shared client.
 
 ## Connect it to a sketch
 
-For a board with a bundled adapter, use:
+A sketch on a bundled board calls `room.begin()`. With your adapter, pass it
+instead; nothing else in the sketch changes:
 
 ```cpp
-#include <EscapeDirector.h>
-
-// DESCRIPTION, driver and sample follow the complete two_props example.
-void setup() {
-  // Configure this puzzle's own input/output pins first.
-  ed::begin(DESCRIPTION, driver);
-  ed::startTimer(sample, 5);
-}
-void loop() {
-  ed::poll();
-  // Service nonblocking puzzle work and deliver captured completion edges.
-}
-```
-
-For your own adapter, the only SDK setup change is the third argument:
-
-```cpp
-#include <EscapeDirector.h>
+#include <EscapeDirectorRoom.h>
 #include "MyBoard.h"
 
-MyBoard board;
+MyBoard board; // alive for the whole sketch
 
 void setup() {
-  // Configure this puzzle's own pins first.
-  ed::begin(DESCRIPTION, driver, board);
-  ed::startTimer(sample, 5);
-}
-void loop() {
-  ed::poll();
-  // Service nonblocking puzzle work and captured completion edges.
+  // ...declarations, as in examples/room_basic...
+  room.begin(board);
 }
 ```
 
-These are integration excerpts, not complete standalone sketches. Start from the
-bundled full example for the prop description, driver callbacks and edge handling.
-Replace its LED constants and pin assignments with those for your board.
-The puzzle `driver` implements state reporting, commands, Room reset and Test
-cleanup. Its `testLease` deadline uses monotonic `millis()` time; the example
-enforces it in the timer callback, so it holds even if `ed::poll()` is blocked
-in networking. The adapter does not take ownership of your pins.
+`room.begin(board)` starts the adapter's timer, which samples `ed::Input`, ends
+`room.pulse()` outputs and enforces Test deadlines even while networking blocks.
+The adapter does not take ownership of your pins.
 
 ## Verify before offering the port
 
-1. Compile a small description and confirm RAM/flash headroom. Compilation alone
+1. Compile `examples/room_basic` and confirm RAM/flash headroom. Compilation alone
    does not qualify a network stack, memory budget or physical output.
 2. Pair over USB using **Your own firmware (SDK)**. Custom setup accepts a board ID
-   with a valid custom description; managed firmware installers remain restricted
+   with a valid description; managed firmware installers remain restricted
    to supported boards. Check scan, join, station verification and clear failure
    reporting without exposing credentials.
 3. Verify the pinned CA accepts the correct station and rejects a different one.
@@ -128,5 +101,5 @@ in networking. The adapter does not take ownership of your pins.
 5. Reset and power-cycle the board. Retain pairing and repeat the authenticated
    handshake. Disconnect Wi-Fi and restart the Connector; never replay missed work.
 6. Interrupt a pairing save and verify the last valid record survives. Test a
-   larger description, scan failures and long-running clock synchronization.
+   Room with more props, scan failures and long-running clock synchronization.
 7. Document the tested core/library versions, wiring, limits and recovery results.

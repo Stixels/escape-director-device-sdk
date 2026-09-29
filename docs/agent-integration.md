@@ -1,61 +1,37 @@
 # Integrate with an AI coding agent
 
-Open this repository with your coding agent. Put a copy of your sketch under
-`workspace/` (ignored by Git) so the root `AGENTS.md` applies, or explicitly ask
-the agent to read that file when the sketch lives elsewhere. Never add Wi-Fi
-passwords, pairing records or customer data to the repository.
+Open this repository (or the extracted download) with your coding agent. Put a
+copy of your sketch under `workspace/` (ignored by Git) so the root `AGENTS.md`
+applies, or ask the agent to read that file when the sketch lives elsewhere.
+Never add Wi-Fi passwords, pairing records or customer data to the repository.
 
 ## Give the agent a concrete brief
 
-> Read AGENTS.md and integrate the Device SDK into workspace/my_prop for my
-> [exact board]. Preserve my existing pins, output polarity, puzzle logic and
-> reset behavior. The prop solves when [condition]. Expose [commands] and show
-> [state] in Escape Director. Keep existing prop and capability IDs if present.
-> Inspect the sketch first; ask about any wiring or behavior it does not establish.
-> Validate the description, check its C++ copy, compile for the board and report
-> the exact results. Do not upload to my installed controller without my instruction.
+> Read AGENTS.md and integrate the Escape Director SDK into workspace/my_prop
+> for my [exact board]. Preserve my existing pins, output polarity, puzzle logic
+> and reset behavior. The prop solves when [condition]. Expose [commands] and
+> show [state] in Escape Director. Keep existing prop and capability IDs if
+> present. Inspect the sketch first; ask about any wiring or behavior it does
+> not establish. Compile for the board and report the exact result. Do not
+> upload to my installed controller without my instruction.
 
-The SDK handles pairing and transport. The agent should adapt your state machine
-to `CustomDriver`, not replace it with another MQTT client or rewrite a working
-puzzle into the example's three-tap behavior.
+The agent should declare your puzzles with `ed::Room` beside your existing
+logic, not replace your sketch with an example or add its own networking.
 
 ## Verify before uploading
 
-```sh
-npm ci
-npm run validate -- workspace/my_prop/description.json --header workspace/my_prop/Description.h
-```
+The agent compiles for the exact board with the commands in
+[Getting started](../GETTING_STARTED.md#arduino-cli). `room.begin()` checks the
+declarations on the board and prints any problem on USB serial at 115200 baud.
 
-The validator checks schema, scope-unique IDs, completion references, number
-ranges, enum labels and compact byte size. Optional `--state state.json` checks a
-captured or synthetic state report against the description. `--json` returns
-`{valid, errors, bytes}` (bytes may be absent for unreadable input); failure exits
-with code 1. Diagnostics name fields rather than echoing rejected payload values.
-
-`Description.h` validation expects the example's `DESCRIPTION[]` raw-string form.
-For code that constructs a description differently, validate its exported JSON
-and independently prove the actual firmware description matches it. Formatting
-may differ, but JSON structure and field order must match for this check.
-
-The agent then compiles for the exact board using the getting-started commands.
-A compiler pass does not prove correct wiring, timing or physical behavior.
-Ask for a handoff containing changed files, preserved pins/IDs, library/core
-versions, compile output and the remaining Test-mode/practice-game steps.
+A compile pass does not prove correct wiring, timing or physical behavior. Ask
+for a handoff with the changed files, preserved pins and IDs, library/core
+versions, compile output and the remaining Test-mode and practice-game steps.
 
 ## Maintainer acceptance exercise
 
-Before public release, test this path with a fresh agent that has only this
-repository and a synthetic existing sketch unlike `two_props`. It should produce
-a compiling adaptation while preserving pins, polarity and local reset/solve
-behavior without needing private source or undocumented information. Record
-where guidance was insufficient and fix the repository. Human bench verification
-is a separate check, after software validation.
-
-## Example command choices
-
-The bundled example marks only Pulse LED as testable. Complete/Reset change its
-ordinary puzzle state and are deliberately unavailable in Test mode. If your
-sketch exposes those commands for testing, implement a temporary overlay and
-restore the ordinary state when the Test lease ends; the consumer exercise used
-that pattern. Always check `startTimer` before enabling networking. The example
-falls back to local-only input/output handling when the timer cannot start.
+Before public release, test this path with a fresh agent that has only the
+download and a synthetic existing sketch unlike `room_basic`. It should produce
+a compiling adaptation that preserves pins, polarity and local reset/solve
+behavior without private source or undocumented information. Record where the
+guidance was insufficient and fix it. Bench verification is a separate check.
