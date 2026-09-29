@@ -29,6 +29,3 @@ Upstream references:
 - [Ajv](https://github.com/ajv-validator/ajv)
 - [ajv-formats](https://github.com/ajv-validator/ajv-formats)
 
-The private background-network experiment also uses the core-supplied
-Arduino_FreeRTOS wrapper/kernel on UNO and Mbed RTOS on GIGA. Their upstream
-notices remain applicable; the prototype does not vendor or relicense them.

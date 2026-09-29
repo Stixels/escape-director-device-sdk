@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: MIT
 //
 // A train door: pulling the lever opens it for five seconds and reports
-// "solved". Escape Director can open or close the door, and Test mode can pulse
-// it. The built-in LED stands in for the door relay, and the lever is a button
-// (or a jumper wire) from pin 2 to GND, so nothing else needs wiring.
+// "solved". Escape Director can open or close the door; in Test mode, Open door
+// opens it for one second. The built-in LED stands in for the door relay, and
+// the lever is a button (or a jumper wire) from pin 2 to GND, so nothing else
+// needs wiring.
 #include <EscapeDirectorRoom.h>
 
 constexpr uint8_t DOOR_RELAY = LED_BUILTIN; // your relay pin in a real prop
@@ -32,9 +33,8 @@ void setup() {
   closeDoor();
 
   door.signal("solved", "Lever pulled");
-  door.command("open", "Open door", openDoor);
+  door.command("open", "Open door", openDoor).testPin(DOOR_RELAY, HIGH, 1000);
   door.command("reset", "Close door", closeDoor);
-  door.command("pulse", "Pulse door").testPin(DOOR_RELAY, HIGH, 1000);
   door.state("open", "Open", &doorOpen);
   door.completion("solved", "open");
   room.onReset(closeDoor); // pulses end automatically on Room reset

@@ -27,8 +27,8 @@ copy of a deployed sketch. Do not rewrite it into the example's puzzle.
    need repair.
 4. Integrate with `ed::Room` (below). Leave Wi-Fi, pairing, credentials, TLS,
    MQTT and reconnection to the library.
-5. Compile for the exact board and report the result. Keep software checks
-   separate from upload, pairing and physical observations.
+5. Compile for the exact board with Arduino CLI (below) and report the result.
+   Keep software checks separate from upload, pairing and physical observations.
 
 ## `ed::Room`
 
@@ -91,14 +91,35 @@ paired, pass its existing prop UUID: `room.prop("fuses", "Fuse panel", "<uuid>")
 Bundled adapters: Arduino GIGA R1 WiFi (`arduino:mbed_giga:giga`) and Arduino
 UNO R4 WiFi (`arduino:renesas_uno:unor4wifi`). Other boards need an adapter.
 
-## Verify your change
+## Use Arduino CLI
 
-Install the board core and libraries using `GETTING_STARTED.md`, then compile
-for the actual target board:
+Prefer [Arduino CLI](https://arduino.github.io/arduino-cli/) to the Arduino IDE:
+every step runs from the terminal and reports results you can read. Install the
+core for the target board and the libraries once:
+
+```sh
+arduino-cli core update-index
+arduino-cli core install arduino:renesas_uno   # or arduino:mbed_giga
+arduino-cli lib install ArduinoJson ArduinoMqttClient
+```
+
+Then, from this folder:
 
 ```sh
 arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --library . workspace/my_prop
+arduino-cli board list                        # find the board's port
+arduino-cli upload -p <port> --fqbn arduino:renesas_uno:unor4wifi --library . workspace/my_prop
+sleep 20 | arduino-cli monitor -p <port> --config baudrate=115200 --quiet
 ```
+
+- Use the actual target board's FQBN (see `docs/compatibility.md`).
+- `compile` checks the code; `upload` replaces the board's sketch, so upload only
+  when the person has asked you to.
+- `monitor` waits for input until it exits; piping `sleep N` into it reads USB
+  serial for N seconds and then returns. `room.begin()` prints any declaration
+  it rejects there.
+- Close the monitor before pairing or **Update connection**: Room Connector
+  needs the USB port during setup.
 
 To change the SDK itself, run `npm ci` and `npm run check` in this repository.
 
@@ -107,7 +128,7 @@ To change the SDK itself, run `npm ci` and `npm run check` in this repository.
 Report the changed files, preserved IDs and wiring, the exact compile command
 and result, library/core versions, and any checks you could not run. Do not
 label a compile pass as a working physical integration. If the user has
-authorized an upload or you have bench tools, perform only the checks the
+authorized an upload and the board is connected, perform only the checks the
 available hardware can establish and record the actual observations. Otherwise
 hand off these steps:
 

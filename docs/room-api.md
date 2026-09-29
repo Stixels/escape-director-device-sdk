@@ -36,9 +36,8 @@ void setup() {
   closeDoor();
 
   door.signal("solved", "Lever pulled");
-  door.command("open", "Open door", openDoor);
+  door.command("open", "Open door", openDoor).testPin(DOOR_RELAY, HIGH, 1000);
   door.command("reset", "Close door", closeDoor);
-  door.command("pulse", "Pulse door").testPin(DOOR_RELAY, HIGH, 1000);
   door.state("open", "Open", &doorOpen);
   door.completion("solved", "open");
   room.onReset(closeDoor); // pulses end automatically on Room reset
@@ -70,7 +69,7 @@ Declare everything in `setup()` before `room.begin()`.
 | `room.prop(slug, name, uuid)` | Keep an existing Device's prop UUID (see [IDs](#ids)). |
 | `prop.signal(id, name)` | Something the prop reports, used by Automations and linked Puzzles. |
 | `prop.command(id, name, handler)` | Something Escape Director can ask it to do. |
-| `.testPin(pin, level, ms)` / `.test(start, stop)` | Allow the command in Test mode (see [Test mode](#test-mode)). |
+| `.testPin(pin, level, ms)` / `.test(start, stop)` | What the command does in Test mode (see [Test mode](#test-mode)). |
 | `prop.state(id, name, &flag)` | Live boolean. |
 | `prop.state(id, name, &count, min, max, unit)` | Live number (`int` or `long`); reports stay within `min`–`max`. |
 | `prop.state(id, name, &index, values)` | Live enum: `index` selects one of `values`. |
@@ -89,11 +88,9 @@ Test behaviors plus number/enum fields. Use `ed::BasicRoom<8, 64, 24>` for more.
 
 ## Inputs and timed outputs
 
-On the UNO R4 WiFi, network work sometimes pauses `loop()`: while connected, at
-most about 0.15 s; while connecting, about 1 s; and during a connection attempt
-to a Room Connector that does not answer, about 10 s (see
-[What pauses](#what-pauses-during-an-outage)). Two helpers keep hardware on time
-through those pauses. Neither runs any of your code in an interrupt.
+Keeping the board connected occasionally pauses `loop()` (see
+[While the board reconnects](#while-the-board-reconnects)). Two helpers keep
+hardware on time through those pauses. Neither runs your code in an interrupt.
 
 **`ed::Input`** samples a button or switch every 5 ms, debounces it (20 ms by
 default) and remembers presses in order, each with the time and Game in which
@@ -165,15 +162,22 @@ the signal; `trigger(signal)` would report an old press as new.
 
 ## Test mode
 
-Commands are not testable unless they declare a Test behavior:
+In Test mode, staff try each prop before players arrive. A command runs in Test
+mode only if it declares what to do there, and that effect must be temporary:
 
-- `.testPin(pin, level, ms)` drives the pin for `ms` (at most until Test ends);
-  the SDK's timer ends it on time.
-- `.test(start, stop)` calls `start`; `stop` runs from `room.loop()` when Test
-  ends, its lease expires or the Room resets. `after()` actions scheduled inside
-  `start` end with Test.
+```cpp
+door.command("open", "Open door", openDoor).testPin(DOOR_RELAY, HIGH, 1000);
+```
 
-Test effects must be temporary and must not change ordinary puzzle state.
+- `.testPin(pin, level, ms)` drives the pin for `ms`, then the SDK switches it
+  back, even if the board is reconnecting. The command's normal handler does
+  not run in Test mode.
+- `.test(start, stop)` calls `start`; `stop` runs when Test ends or the Room
+  resets. Use it when the effect needs more than one pin. `after()` actions
+  scheduled inside `start` end with Test.
+
+Test effects must not change ordinary puzzle state, such as marking a puzzle
+solved.
 
 ## IDs
 
@@ -185,25 +189,16 @@ When moving an already paired Device to `ed::Room`, pass its existing prop
 UUIDs: `room.prop("fuses", "Fuse panel", "0210a18f-c31f-45b7-a35a-e20eb82a6c11")`.
 Keep its signal, command and state IDs.
 
-## What pauses during an outage
+## While the board reconnects
 
-Longest single pause of `loop()`, measured on UNO R4 WiFi with Room Connector
-0.8.5 and a seven-prop room controller:
+The SDK keeps the board connected in the background. While it connects or
+reconnects, `loop()` can pause: usually for well under a second, and for up to
+about 10 seconds when Room Connector can't be reached.
 
-| Situation | Longest pause | Otherwise |
-| --- | --- | --- |
-| Connected | 0.15 s | ~25 ms network service every 50 ms; ~0.1 s state heartbeat every 2 s |
-| Room Connector stops | 0.09 s; 10 s for a blind connection attempt, at most every 2 minutes | ~60 ms discovery query every 5 s |
-| Room Connector returns | 1.0 s, while reconnecting | Reconnected about 3 s after Room Connector started |
-| Wi-Fi drops | 0.12 s while offline; 1.0 s while reconnecting | Rejoins in the background; reconnected 9 s after the drop |
-| Board starts | 1.3 s to connect; 10 s if Room Connector is down | Then as above |
-
-`ed::Input` presses (up to 16) and `room.pulse()` timing (to 5 ms) are
-unaffected by these pauses.
-
-Other code in `loop()` (reading an RFID reader, updating a display, level-driven
-relays) waits for them. RFID and display libraries are ordinary code: keep
-their calls short and let the SDK remember button presses.
+`ed::Input` presses and `room.pulse()` outputs keep working through these
+pauses. Other code in `loop()` waits, so keep your own calls short, such as
+reading an RFID reader or updating a display, and let the SDK remember button
+presses.
 
 ## Porting an existing sketch
 
