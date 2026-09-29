@@ -13,3 +13,27 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+
+  # Compiles the example for each bundled adapter with the baseline versions in
+  # docs/compatibility.md. Compilation is not hardware qualification.
+  firmware:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - core: arduino:renesas_uno@1.5.3
+            fqbn: arduino:renesas_uno:unor4wifi
+          - core: arduino:mbed_giga@4.6.0
+            fqbn: arduino:mbed_giga:giga
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: arduino/setup-arduino-cli@81d310742121c928ea9c8bbd407b4217b432ae02 # v2.0.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.arduino15
+          key: arduino-${{ matrix.core }}-ArduinoJson-7.4.3-ArduinoMqttClient-0.1.8
+      - run: arduino-cli core update-index
+      - run: arduino-cli core install ${{ matrix.core }}
+      - run: arduino-cli lib install ArduinoJson@7.4.3 ArduinoMqttClient@0.1.8
+      - run: arduino-cli compile --warnings default --fqbn ${{ matrix.fqbn }} --library . examples/two_props

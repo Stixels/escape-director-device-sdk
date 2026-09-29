@@ -112,8 +112,9 @@ until Reset; Reset Room resets both props.
 Then link each prop to a Puzzle and run a practice game. Complete the Puzzle in
 the Dashboard and check that the prop completes; reset, then solve the prop and
 check that the Puzzle completes once. If the timer cannot start, the example
-prints a diagnostic and runs local input/output logic only; it does not enter
-network or Test operation without independent timing.
+prints a diagnostic and runs local input/output logic only. The prop then stays
+offline in Escape Director: it cannot pair, report state or receive commands
+until the board restarts with a working timer.
 
 ## Make it your own
 

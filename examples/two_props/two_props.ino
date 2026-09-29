@@ -1,5 +1,5 @@
 // Copyright 2026 Stixels
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 
 #include <Arduino.h>
 #include <EscapeDirector.h>
@@ -111,7 +111,8 @@ void setup() {
   ed::begin(DESCRIPTION, driver);
   timerRunning = ed::startTimer(sample, 5);
   if (!timerRunning)
-    Serial.println("SDK timer unavailable; running local puzzle only");
+    Serial.println(
+        "SDK timer unavailable: local puzzle only; offline in Escape Director");
 }
 void loop() {
   if (!timerRunning) {
