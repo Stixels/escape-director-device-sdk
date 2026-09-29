@@ -27,11 +27,3 @@ declarations on the board and prints any problem on USB serial at 115200 baud.
 A compile pass does not prove correct wiring, timing or physical behavior. Ask
 for a handoff with the changed files, preserved pins and IDs, library/core
 versions, compile output and the remaining Test-mode and practice-game steps.
-
-## Maintainer acceptance exercise
-
-Before public release, test this path with a fresh agent that has only the
-download and a synthetic existing sketch unlike `room_basic`. It should produce
-a compiling adaptation that preserves pins, polarity and local reset/solve
-behavior without private source or undocumented information. Record where the
-guidance was insufficient and fix it. Bench verification is a separate check.

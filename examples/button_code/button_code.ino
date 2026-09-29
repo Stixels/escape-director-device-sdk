@@ -3,8 +3,9 @@
 //
 // A four-button code: pressing the buttons on pins 2–5 in the order 1-3-2-4
 // solves the puzzle, and a lock (the built-in LED here) releases two seconds
-// later. Escape Director sees the progress, can release the lock or reset the
-// code, and Test mode can pulse the lock. Each button connects its pin to GND.
+// later. Escape Director sees the progress and can release the lock or reset
+// the code; in Test mode, Release lock opens it for one second. Each button
+// connects its pin to GND.
 #include <EscapeDirectorRoom.h>
 
 constexpr uint8_t LOCK = LED_BUILTIN; // your lock relay pin in a real prop
@@ -38,9 +39,8 @@ void setup() {
   resetCode();
 
   code.signal("solved", "Code entered");
-  code.command("release", "Release lock", solve);
+  code.command("release", "Release lock", solve).testPin(LOCK, HIGH, 1000);
   code.command("reset", "Reset code", resetCode);
-  code.command("pulse", "Pulse lock").testPin(LOCK, HIGH, 1000);
   code.state("progress", "Progress", &progress, 0, CODE_LENGTH, "presses");
   code.state("released", "Lock released", &released);
   code.completion("solved", "release");

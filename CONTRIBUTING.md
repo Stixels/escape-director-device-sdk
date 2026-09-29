@@ -24,10 +24,10 @@ compiler executable). On Windows use a suitable Clang/MinGW environment; MSVC's
 command-line flags are not supported by this runner. Firmware compilation uses
 Arduino CLI and the pinned dependencies in GETTING_STARTED.md. `npm test` also
 needs ArduinoJson's headers (installed with the Arduino IDE, or set
-`ARDUINOJSON_SRC`). CI compiles both examples for both bundled board targets;
-run the same
-commands locally when shared code changes. Hardware findings must identify
-the board, SDK/core versions, conditions and directly observed behavior.
+`ARDUINOJSON_SRC`). CI compiles both examples for both bundled boards; run the
+same commands locally when shared code changes. When you report a hardware
+finding, name the board, the SDK and core versions, the conditions and what you
+observed.
 
 ## Prepare a download
 
@@ -41,10 +41,6 @@ The packager refuses to overwrite an existing directory and copies an explicit
 allowlist into an Arduino library ZIP and a source/guide bundle. It records this
 repository's commit and file hashes. Generated files belong outside the checkout
 or in ignored `dist/`; never commit build output, installed dependencies or secrets.
-Packaging is local and does not create a GitHub Release or publish an npm package.
-The npm manifest is intentionally private: these are host tools for an Arduino
-library, not a separately published JavaScript SDK.
-
-A maintainer reviews licensing/dependencies, fresh-consumer checks and physical
-qualification before approving a public release. Do not make the repository
-public, create release tags, or upload release assets as a side effect of a test.
+Packaging is local and does not create a GitHub Release. The npm manifest is
+marked private because its packages are development tools for an Arduino
+library; nothing is published to npm.

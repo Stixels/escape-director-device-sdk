@@ -1,13 +1,9 @@
 # Escape Director Device SDK
 
 Bring your own Arduino prop code into Escape Director. Keep your puzzle logic;
-the SDK connects its state, commands and completion signals to the Room.
-
-**Private preparation candidate, version 0.3.0.** This repository is being
-prepared for an open-source release under the MIT License. No public release is
-available yet. Board adapters compile for UNO R4 WiFi and GIGA R1 WiFi; current
-end-to-end hardware qualification remains incomplete. See
-[compatibility and qualification](docs/compatibility.md).
+the SDK connects its state, commands and completion signals to the Room. It
+supports the Arduino UNO R4 WiFi and GIGA R1 WiFi and is free to use and change
+under the [MIT License](#license).
 
 ## Start with your code
 

@@ -5,8 +5,8 @@ uploads a one-prop example, connects it to a Room and shows how to adapt your
 own sketch. The app side is also covered in
 [Build Your Own Controller](https://docs.escapedirector.com/build-your-rooms/build-your-own-controller).
 
-The SDK includes adapters for **Arduino UNO R4 WiFi** and **Arduino GIGA R1 WiFi**
-(see [qualification status](docs/compatibility.md)); for another board, see
+The SDK supports the **Arduino UNO R4 WiFi** and **Arduino GIGA R1 WiFi** (see
+[compatibility](docs/compatibility.md)); for another board, see
 [Add a board adapter](BOARD_PORTING.md). Start with a spare board: uploading
 replaces its sketch.
 
@@ -49,11 +49,10 @@ On the Room Station computer, start Room Connector, then in Escape Director:
 
 ## 4. Try it
 
-- **Test mode:** run **Pulse door**; the LED lights for one second.
-- **Commands:** **Open door** lights the LED for five seconds; the Room shows
-  **Open** while it is lit.
-- **Practice game:** link **Train door** to a Puzzle, start a game and touch pin
-  2 to GND. The door opens and the Puzzle completes.
+- **Test mode:** run **Open door**. The LED lights for one second.
+- **Practice game:** link **Train door** to a Puzzle and start a game. Touch pin
+  2 to GND: the LED lights for five seconds, the Room shows **Open** while it is
+  lit, and the Puzzle completes.
 
 ## 5. Adapt your own sketch
 
@@ -69,10 +68,10 @@ ed::Input lever(2);                               // buttons and switches
 
 void setup() {
   // ...your existing pin setup...
-  door.signal("solved", "Lever pulled");                      // what Escape Director hears
-  door.command("open", "Open door", openDoor);                // what the Game Master can do
-  door.command("pulse", "Pulse door").testPin(12, HIGH, 1000); // safe to try in Test mode
-  door.state("open", "Open", &doorOpen);                      // live status
+  door.signal("solved", "Lever pulled");      // what Escape Director hears
+  door.command("open", "Open door", openDoor) // what the Game Master can do,
+      .testPin(12, HIGH, 1000);               // and a safe one-second try in Test mode
+  door.state("open", "Open", &doorOpen);      // live status
   room.onReset(closeDoor);
   room.begin();
 }

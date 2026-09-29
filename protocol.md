@@ -136,9 +136,9 @@ returns `command_limit`. Never retry an uncertain actuation after reconnect.
 
 ## Station clock synchronization
 
-SDK 0.1.1 and later refresh the station clock every ten seconds through the authenticated
-MQTT connection (requires Room Connector 0.8.1 or newer). Send `clock-sync` with
-only `sessionId` and a positive uint32 `sequence`. The reply echoes these fields
+The SDK refreshes the station clock every ten seconds through the authenticated
+MQTT connection. Send `clock-sync` with only `sessionId` and a positive uint32
+`sequence`. The reply echoes these fields
 and adds `authorityVersion` and station `now` in epoch milliseconds. These
 transport messages do not carry a description fingerprint or renew control leases.
 
@@ -185,7 +185,7 @@ Puzzle IDs or application gameplay relationships.
 
 ## Labels and guidance
 
-SDK 0.2.0 with Room Connector 0.8.2 supports optional presentation metadata:
+Descriptions may include optional presentation metadata:
 
 - Signals, commands and state fields may include `description` (1–240 characters).
 - Number state fields may include `unit` (1–16 characters), for example `cm`.
