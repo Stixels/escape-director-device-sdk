@@ -4,13 +4,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { validateDescription, validateHeader, validateState } from '../scripts/validate-description.mjs';
-const example = JSON.parse(readFileSync(new URL('../examples/two_props/description.json', import.meta.url), 'utf8'));
+import { validateDescription, validateState } from '../scripts/validate-description.mjs';
+const example = JSON.parse(readFileSync(new URL('./fixtures/description.json', import.meta.url), 'utf8'));
 const copy = () => structuredClone(example);
 
-test('shipped example and C++ description agree', () => {
+test('the fixture description is valid', () => {
   assert.equal(validateDescription(example).valid, true);
-  assert.deepEqual(validateHeader(example, readFileSync(new URL('../examples/two_props/Description.h', import.meta.url), 'utf8')), []);
 });
 for (const [name, change] of [
   ['duplicate props', d => d.props.push(structuredClone(d.props[0]))],
@@ -31,11 +30,6 @@ test('UTF-8 size limit applies even within field/count limits', () => {
   assert.ok(result.errors.some(e=>e.message.includes('16384')));
 });
 
-test('header drift and invalid JSON fail without trusting the C++ copy',()=>{
-  assert.ok(validateHeader(example,'constexpr char DESCRIPTION[] = R"json({})json";').length);
-  assert.ok(validateHeader(example,'constexpr char DESCRIPTION[] = R"json({)json";').length);
-});
-
 test('state must cover exactly the advertised props and bounded fields',()=>{
   const d=copy();
   d.props[0].state.push({id:'count',name:'Count',type:'number',min:0,max:3});
@@ -48,7 +42,7 @@ test('state must cover exactly the advertised props and bounded fields',()=>{
 
 test('CLI produces machine-readable success and nonzero failures',()=>{
   const cwd=new URL('../',import.meta.url);
-  const good=spawnSync(process.execPath,['scripts/validate-description.mjs','examples/two_props/description.json','--json'],{cwd,encoding:'utf8'});
+  const good=spawnSync(process.execPath,['scripts/validate-description.mjs','tests/fixtures/description.json','--json'],{cwd,encoding:'utf8'});
   assert.equal(good.status,0,good.stderr);assert.equal(JSON.parse(good.stdout).valid,true);
   const bad=spawnSync(process.execPath,['scripts/validate-description.mjs','does-not-exist.json','--json'],{cwd,encoding:'utf8'});
   assert.equal(bad.status,1);assert.equal(JSON.parse(bad.stdout).valid,false);

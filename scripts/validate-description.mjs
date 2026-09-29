@@ -92,36 +92,22 @@ export function validateState(description, report) {
   return { valid: errors.length === 0, errors };
 }
 
-export function validateHeader(description, text) {
-  const literal = text.match(/\bDESCRIPTION\s*\[\s*\]\s*=\s*R"([A-Za-z0-9_]{0,16})\(([\s\S]*?)\)\1"\s*;/);
-  if (!literal) return [issue('/header', 'Expected DESCRIPTION[] as a C++ raw JSON string, as in the example')];
-  try {
-    if (JSON.stringify(JSON.parse(literal[2])) !== JSON.stringify(description)) {
-      return [issue('/header', 'DESCRIPTION and description.json differ')];
-    }
-  } catch {
-    return [issue('/header', 'DESCRIPTION is not valid JSON')];
-  }
-  return [];
-}
-
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
   const json = args.includes('--json');
   let result;
   try {
     const file = args.shift();
-    if (!file || file.startsWith('--')) throw new Error('Usage: node scripts/validate-description.mjs description.json [--header Description.h] [--state state.json] [--json]');
+    if (!file || file.startsWith('--')) throw new Error('Usage: node scripts/validate-description.mjs description.json [--state state.json] [--json]');
     const options = {};
     while (args.length) {
       const key = args.shift();
       if (key === '--json') continue;
-      if (!['--header', '--state'].includes(key) || !args.length || args[0].startsWith('--')) throw new Error('Invalid command options');
+      if (key !== '--state' || !args.length || args[0].startsWith('--')) throw new Error('Invalid command options');
       options[key] = args.shift();
     }
     const description = JSON.parse(readFileSync(file, 'utf8'));
     result = validateDescription(description);
-    if (options['--header']) result.errors.push(...validateHeader(description, readFileSync(options['--header'], 'utf8')));
     if (result.valid && options['--state']) result.errors.push(...validateState(description, JSON.parse(readFileSync(options['--state'], 'utf8'))).errors);
     result.valid = result.errors.length === 0;
   } catch (error) {

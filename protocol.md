@@ -2,8 +2,8 @@
 
 This is the custom transport contract used by Room Connector, the app pairing
 flow and the shared Arduino SDK client. Existing managed MQTT v1 stays unchanged.
-Sketches that use the SDK libraries only need the description reference below;
-the client handles the wire messages.
+It is a reference for SDK maintainers: sketches use `ed::Room`, which generates
+the description from its declarations and handles every wire message.
 
 ## Description reference
 
@@ -47,8 +47,15 @@ A custom credential uses the same station CA, controller UUID/password and
 `ed/v1/<controllerId>/up|down` topics as managed firmware. The Connector explicitly
 provisions it with a SHA-256 `descriptionId`; a managed credential cannot announce
 itself as custom. Different-controller replacement remains a future flow. Same-controller description
-updates require the explicit USB Update firmware connection handshake; they never overwrite
-credentials automatically.
+updates require the explicit USB Update connection handshake. The Connector keeps the previous
+password valid until the controller signs in with the new one, so an interrupted update never
+strands a controller.
+
+USB setup: the SDK's `identify` reply advertises `provisionParts: true`. The Connector then
+sends the station certificate as acknowledged `provision-part` requests (`index` from 0, `data`
+of at most 256 characters, 4,096 characters in total) before a `provision` request without
+`certificate`. While a setup session is active the SDK pauses reconnects and state reports, and
+the certificate is kept out of RAM except while connecting.
 
 The fingerprint hashes the validated description with object keys sorted in
 lexical order, arrays retained in declared order, and compact JSON encoding.
@@ -64,7 +71,7 @@ a board can echo the provisioned fingerprint after its description is accepted.
    `custom-ready`, the session ID and fingerprint. A changed description closes
    the connection. Unsupported versions never become operational.
 4. The peer sends `custom-state` containing the same session ID, fingerprint and
-   complete `state`. Only a validated state enables requests. Report every 500 ms;
+   complete `state`. Only a validated state enables requests. Report on every change and at least every 2 s (the SDK checks every 100 ms);
    the Connector closes peers without valid state for eight seconds. MQTT keepalive
    is five seconds. A description alone does not make a controller operational.
 

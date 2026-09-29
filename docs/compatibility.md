@@ -15,9 +15,10 @@ and compilation are not promises of qualified operation on every board/network.
 | ArduinoMqttClient | 0.1.8 |
 | Host tooling | Node.js 24.18+, C++17; `zip` for local packaging |
 
-CI compiles the packaged example for both listed targets on every push. The
-portable tests cover command expiry/deduplication, authority, clock wrap, memory
-helpers and pairing-slot fallback. These checks do not establish Wi-Fi/TLS
+CI compiles both examples for both listed targets on every push. The host tests cover the `ed::Room` runtime (inputs, press queue, pulses,
+Test pins, declarations), the generated description, command expiry and
+deduplication, clock wrap, station address choice, memory helpers and
+pairing-slot fallback. These checks do not establish Wi-Fi/TLS
 reliability, USB recovery or physical output behavior.
 
 Before a public supported-board claim, complete current-version pairing, real
@@ -28,10 +29,10 @@ a real network-and-game check. macOS/Windows Connector qualification is separate
 
 ## Compatibility policy
 
-Keep prop UUIDs and capability IDs when updating compatible firmware. Rename
-using labels. Explicitly document removed capabilities; saved Room links may
-need repair. A changed description currently requires USB approval through
-**Controller setup → Update firmware connection**, then **Save props to Room**.
+Keep prop slugs (or explicit UUIDs) and capability IDs when updating firmware.
+Rename using names. Explicitly document removed capabilities; saved Room links
+may need repair. Changed declarations require **Controller setup → Check
+controller → Update connection** over USB, then **Save props to Room**.
 
 During 0.x development, releases may introduce source-breaking changes; record
 migration instructions and exact tested dependencies with each release. Do not
@@ -45,10 +46,5 @@ setup flow or a supported adapter merely by speaking MQTT.
 
 ## Agent-consumer software exercise
 
-A fresh agent adapted a synthetic three-button sequence using only the source
-bundle and its guides. Description/header/state checks, the host suites and UNO
-compilation passed; a separate host harness compared 1,118,480 sampled
-input/reset transitions with the original local logic. This qualifies the
-software-guidance path for that example only. No firmware was uploaded and no
-physical or network behavior was observed. The exercise identified and prompted
-corrections to the bundled example's Test-command flags and timer-start handling.
+An earlier fresh-agent exercise used the removed lower-level API. Repeat it with
+`ed::Room` before a public release (see [agent integration](agent-integration.md)).

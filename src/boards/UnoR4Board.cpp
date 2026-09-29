@@ -102,6 +102,40 @@ void onTimer(timer_callback_args_t *) {
 class UnoR4Board : public ed::BoardAdapter {
   WiFiSSLClient tls;
   WiFiUDP discovery;
+  // certificateOnly parses just the station certificate, for connection attempts.
+  bool load(JsonDocument &value, bool certificateOnly) {
+    value.clear();
+    savedGeneration = 0;
+    if (EEPROM.length() < 2 * SLOT_BYTES)
+      return false;
+    Header headers[2] = {};
+    uint32_t generations[2] = {};
+    for (int slot = 0; slot < 2; ++slot)
+      if (readHeader(slot, headers[slot]))
+        generations[slot] = headers[slot].generation;
+    const int loaded = ed::detail::loadPairingSlot(generations, [&](int slot) {
+      value.clear();
+      SlotReader reader(slot, headers[slot].length);
+      JsonDocument filter;
+      if (certificateOnly)
+        filter["connection"]["certificate"] = true;
+      const auto error = certificateOnly
+                             ? deserializeJson(value, reader, DeserializationOption::Filter(filter))
+                             : deserializeJson(value, reader);
+      return !error ? ed::detail::PairingRead::Loaded
+             : error == DeserializationError::NoMemory ? ed::detail::PairingRead::Unavailable
+                                                       : ed::detail::PairingRead::Invalid;
+    });
+    if (loaded < 0) {
+      if (loaded == ed::detail::PAIRING_UNAVAILABLE)
+        Serial.println(F("Escape Director: not enough memory to load pairing; restart the controller."));
+      value.clear();
+      return false;
+    }
+    savedSlot = loaded;
+    savedGeneration = generations[loaded];
+    return true;
+  }
 
 public:
   const char *id() const override { return "uno-r4-wifi"; }
@@ -109,7 +143,10 @@ public:
     Serial.begin(115200);
     WiFi.setTimeout(15000);
     tls.setTimeout(2000);
-    tls.setConnectionTimeout(5000);
+#ifndef ED_TLS_CONNECT_TIMEOUT_MS
+#define ED_TLS_CONNECT_TIMEOUT_MS 5000
+#endif
+    tls.setConnectionTimeout(ED_TLS_CONNECT_TIMEOUT_MS);
   }
   Stream &setupStream() override { return Serial; }
   Client &secureClient() override { return tls; }
@@ -117,6 +154,16 @@ public:
   // Association can finish before DHCP; only an address is a usable connection.
   bool networkConnected() override {
     return WiFi.status() == WL_CONNECTED && uint32_t(WiFi.localIP()) != 0;
+  }
+  // WiFi.begin() sends the join command, then waits on this board for up to
+  // its timeout. A zero timeout returns once the command is sent.
+  void startJoin(const char *ssid, const char *password) override {
+    WiFi.setTimeout(0);
+    if (strlen(password))
+      WiFi.begin(ssid, password);
+    else
+      WiFi.begin(ssid);
+    WiFi.setTimeout(15000);
   }
   bool joinNetwork(const char *ssid, const char *password) override {
     if ((strlen(password) ? WiFi.begin(ssid, password) : WiFi.begin(ssid)) != WL_CONNECTED)
@@ -147,36 +194,16 @@ public:
     }
     return true;
   }
-  bool loadPairing(JsonDocument &value) override {
-    value.clear();
-    savedGeneration = 0;
-    if (EEPROM.length() < 2 * SLOT_BYTES)
-      return false;
-    Header headers[2] = {};
-    uint32_t generations[2] = {};
-    for (int slot = 0; slot < 2; ++slot)
-      if (readHeader(slot, headers[slot]))
-        generations[slot] = headers[slot].generation;
-    const int loaded = ed::detail::loadPairingSlot(generations, [&](int slot) {
-      value.clear();
-      SlotReader reader(slot, headers[slot].length);
-      const auto error = deserializeJson(value, reader);
-      return !error ? ed::detail::PairingRead::Loaded
-             : error == DeserializationError::NoMemory ? ed::detail::PairingRead::Unavailable
-                                                       : ed::detail::PairingRead::Invalid;
-    });
-    if (loaded < 0) {
-      if (loaded == ed::detail::PAIRING_UNAVAILABLE)
-        Serial.println(F("Escape Director: not enough memory to load pairing; restart the controller."));
-      value.clear();
-      return false;
-    }
-    savedSlot = loaded;
-    savedGeneration = generations[loaded];
-    return true;
-  }
+  bool loadPairing(JsonDocument &value) override { return load(value, false); }
+  bool loadCertificate(JsonDocument &value) override { return load(value, true); }
   bool savePairing(JsonVariantConst value) override {
     if (EEPROM.length() < 2 * SLOT_BYTES || measureJson(value) >= SLOT_BYTES - HEADER_BYTES)
+      return false;
+    // The core allocates each 1 KB flash block's buffer with new, which aborts
+    // instead of failing when the heap is short. Refuse the save while it can.
+    if (void *room = malloc(1024 + 64))
+      free(room);
+    else
       return false;
     // Write the idle slot, then verify it; the active slot stays usable on failure.
     const int target = savedGeneration ? 1 - savedSlot : 0;

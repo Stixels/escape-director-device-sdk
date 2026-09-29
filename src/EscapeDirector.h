@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include "BoardAdapter.h"
 
+// Internal core under ed::Room. Sketches include <EscapeDirectorRoom.h>; the
+// declarations here are the SDK's plumbing, not a supported sketch API.
+
 namespace ed {
 
 // Callbacks run on the Arduino loop thread. Synchronize shared I/O state if a
@@ -18,29 +21,37 @@ public:
   virtual void endTest() = 0;
   // A board timer must enforce this monotonic deadline even while Wi-Fi blocks.
   virtual void testLease(uint32_t deadlineMs) = 0;
+  // Internal dispatch deadline for asynchronous adapters; legacy drivers need no change.
+  virtual void commandDeadline(uint32_t deadlineMs) { (void)deadlineMs; }
   virtual ~CustomDriver() = default;
 };
 
-// One client per sketch. Call begin once; keep the driver and adapter alive for the entire sketch.
-// descriptionJson must stay valid for the whole sketch; a constexpr array stays
-// in flash and is streamed when sent, so its size does not consume RAM.
-void begin(const char *descriptionJson, CustomDriver &driver, BoardAdapter &adapter);
+// Supplies the firmware description without keeping it in RAM. ed::Room
+// generates it from its declarations.
+class DescriptionSource {
+public:
+  virtual size_t descriptionLength() = 0;       // compact JSON bytes
+  virtual void writeDescription(Print &out) = 0; // compact JSON
+  virtual const char *firmwareVersion() = 0;
+  // Whether propId declares capability as a signal (command == false) or as a
+  // command; testing additionally requires a testable command.
+  virtual bool declares(const char *propId, const char *capability, bool command, bool testing) = 0;
+  virtual ~DescriptionSource() = default;
+};
 
-// Boards with a bundled adapter. Other boards pass their own adapter to begin.
+// One client per sketch. Call begin once; keep the description, driver and
+// adapter alive for the entire sketch.
+void begin(DescriptionSource &description, CustomDriver &driver, BoardAdapter &adapter);
+
+// Boards with a bundled adapter.
 #if defined(ARDUINO_GIGA) || defined(ARDUINO_UNOR4_WIFI)
+#define ED_BUNDLED_BOARD 1
 namespace detail {
 BoardAdapter &defaultBoard();
-}
-inline void begin(const char *descriptionJson, CustomDriver &driver) {
-  begin(descriptionJson, driver, detail::defaultBoard());
 }
 #endif
 
 void poll();
-
-// Runs tick from a board timer every periodMs, even while networking blocks.
-// Sample inputs and enforce Test deadlines here. Call after begin, once.
-bool startTimer(void (*tick)(), uint32_t periodMs);
 
 // Call on a local completion edge. Returns zero outside live Game authority.
 uint32_t captureGame();
