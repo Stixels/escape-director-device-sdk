@@ -18,10 +18,10 @@ int main() {
   assert(ed::commonPrefixBits(ip(10, 0, 0, 1), ip(10, 0, 0, 1)) == 32);
   assert(ed::commonPrefixBits(ip(10, 0, 0, 1), ip(192, 168, 0, 1)) == 0);
 
-  // Bench case: VPN and Tailscale addresses sort first by text; the controller
-  // (192.168.68.55/22) reaches the station on a routed 192.168.1.x segment.
-  const uint32_t board = ip(192, 168, 68, 55);
-  const uint32_t station[] = {ip(10, 2, 0, 2), ip(100, 109, 58, 46), ip(192, 168, 1, 151)};
+  // VPN and overlay-network addresses sort first by text; the controller
+  // (192.168.20.40) reaches the station on a routed 192.168.1.x segment.
+  const uint32_t board = ip(192, 168, 20, 40);
+  const uint32_t station[] = {ip(10, 8, 0, 2), ip(100, 64, 0, 7), ip(192, 168, 1, 20)};
   auto score = [&](size_t i) { return ed::commonPrefixBits(board, station[i]); };
   assert(ed::stationAddressIndex(0, 3, score) == 2); // the LAN address first
   const size_t second = ed::stationAddressIndex(1, 3, score);
@@ -30,7 +30,7 @@ int main() {
   assert(ed::stationAddressIndex(3, 3, score) == 2);
 
   // Same subnet wins over another private range; ties keep the station's order.
-  const uint32_t local[] = {ip(172, 16, 0, 9), ip(192, 168, 68, 10), ip(192, 168, 69, 20)};
+  const uint32_t local[] = {ip(172, 16, 0, 9), ip(192, 168, 20, 10), ip(192, 168, 21, 20)};
   auto localScore = [&](size_t i) { return ed::commonPrefixBits(board, local[i]); };
   assert(ed::stationAddressIndex(0, 3, localScore) == 1);
   auto tie = [](size_t) { return 5; };
