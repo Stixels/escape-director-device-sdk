@@ -12,6 +12,14 @@ code in `loop()`.
 #include <EscapeDirectorRoom.h>
 
 constexpr uint8_t DOOR_RELAY = LED_BUILTIN; // your relay pin in a real prop
+// The level that opens the door. Many relay modules, and the GIGA's built-in
+// LED, switch on with LOW; match your wiring.
+#if defined(ARDUINO_GIGA)
+constexpr uint8_t DOOR_OPEN = LOW;
+#else
+constexpr uint8_t DOOR_OPEN = HIGH;
+#endif
+constexpr uint8_t DOOR_CLOSED = DOOR_OPEN == HIGH ? LOW : HIGH;
 
 ed::Room room("Train door", "1.0.0");
 ed::Prop &door = room.prop("door", "Train door");
@@ -23,11 +31,11 @@ void doorClosed() { doorOpen = false; }
 void openDoor() {
   // Five seconds (to within the SDK's 5 ms timer), even while the board is
   // reconnecting.
-  room.pulse(DOOR_RELAY, HIGH, 5000, doorClosed);
+  room.pulse(DOOR_RELAY, DOOR_OPEN, 5000, doorClosed);
   doorOpen = true;
 }
 void closeDoor() {
-  digitalWrite(DOOR_RELAY, LOW);
+  digitalWrite(DOOR_RELAY, DOOR_CLOSED);
   doorOpen = false;
 }
 
@@ -36,7 +44,7 @@ void setup() {
   closeDoor();
 
   door.signal("solved", "Lever pulled");
-  door.command("open", "Open door", openDoor).testPin(DOOR_RELAY, HIGH, 1000);
+  door.command("open", "Open door", openDoor).testPin(DOOR_RELAY, DOOR_OPEN, 1000);
   door.command("reset", "Close door", closeDoor);
   door.state("open", "Open", &doorOpen);
   door.completion("solved", "open");
