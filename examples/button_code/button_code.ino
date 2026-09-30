@@ -9,6 +9,14 @@
 #include <EscapeDirectorRoom.h>
 
 constexpr uint8_t LOCK = LED_BUILTIN; // your lock relay pin in a real prop
+// The level that releases the lock. Many relay modules, and the GIGA's
+// built-in LED, switch on with LOW; match your wiring.
+#if defined(ARDUINO_GIGA)
+constexpr uint8_t LOCK_RELEASED = LOW;
+#else
+constexpr uint8_t LOCK_RELEASED = HIGH;
+#endif
+constexpr uint8_t LOCK_HELD = LOCK_RELEASED == HIGH ? LOW : HIGH;
 
 ed::Room room("Button code", "1.0.0");
 ed::Prop &code = room.prop("button-code", "Button code");
@@ -20,12 +28,12 @@ int progress = 0; // correct presses so far
 bool released = false;
 
 void releaseLock() {
-  digitalWrite(LOCK, HIGH);
+  digitalWrite(LOCK, LOCK_RELEASED);
   released = true;
 }
 void resetCode() {
   room.cancel(releaseLock);
-  digitalWrite(LOCK, LOW);
+  digitalWrite(LOCK, LOCK_HELD);
   progress = 0;
   released = false;
 }
@@ -39,7 +47,7 @@ void setup() {
   resetCode();
 
   code.signal("solved", "Code entered");
-  code.command("release", "Release lock", solve).testPin(LOCK, HIGH, 1000);
+  code.command("release", "Release lock", solve).testPin(LOCK, LOCK_RELEASED, 1000);
   code.command("reset", "Reset code", resetCode);
   code.state("progress", "Progress", &progress, 0, CODE_LENGTH, "presses");
   code.state("released", "Lock released", &released);
